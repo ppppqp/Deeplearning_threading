@@ -1,0 +1,15 @@
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/bin/Debug/net5.0/BioNet.deps.json
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/bin/Debug/net5.0/BioNet.runtimeconfig.json
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/bin/Debug/net5.0/BioNet.runtimeconfig.dev.json
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/bin/Debug/net5.0/BioNet.dll
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/bin/Debug/net5.0/ref/BioNet.dll
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/bin/Debug/net5.0/BioNet.pdb
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/obj/Debug/net5.0/BioNet.csprojAssemblyReference.cache
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/obj/Debug/net5.0/BioNet.GeneratedMSBuildEditorConfig.editorconfig
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/obj/Debug/net5.0/BioNet.AssemblyInfoInputs.cache
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/obj/Debug/net5.0/BioNet.AssemblyInfo.cs
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/obj/Debug/net5.0/BioNet.csproj.CoreCompileInputs.cache
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/obj/Debug/net5.0/BioNet.dll
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/obj/Debug/net5.0/ref/BioNet.dll
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/obj/Debug/net5.0/BioNet.pdb
+/Users/panqp/Documents/UnderGrad/protein fold/exercise/L1depth/BioNet/obj/Debug/net5.0/BioNet.genruntimeconfig.cache
