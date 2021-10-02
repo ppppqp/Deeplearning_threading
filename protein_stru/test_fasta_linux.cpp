@@ -11,7 +11,8 @@ int main() {
   std::ifstream reference;
   reference.open("../../summary/AAA.seq");
   string line;
-
+  double successCount = 0;
+  double failureCount = 0;
   while (getline(reference, line)) {
     if (line[0] == '>') {  // start with file indicator
       std::stringstream ss(line);
@@ -20,8 +21,8 @@ int main() {
       ss >> indicator >> resNum;
       if (indicator.size() > 6) continue;  // skip sub chain
       char chainNum = indicator[5];
-      string proteinName = indicator.substr(1, 4);
-      string pdbFileName = "./testFiles/" + proteinName + ".pdb";
+      string proteinName = indicator.substr(1, 5);
+      string pdbFileName = "../../PDB/" + proteinName + ".pdb";
       if (access(pdbFileName.c_str(), F_OK) != 0) {
         // no avaiable pdb file
         continue;
@@ -35,7 +36,7 @@ int main() {
         correct += line;
       }
       // using pdbParser to generat fasta file
-      PDBParser parser(pdbFileName,false);
+      PDBParser parser(pdbFileName, true);
 
       parser.parse();
 
@@ -63,12 +64,13 @@ int main() {
         }
       }
       if (output != correct) {
+        failureCount++;
         cout << setw(30) << "Test protein " << proteinName << " chain "
              << chainNum << " test FAILED!\n";
       } else {
-        cout << setw(30) << "Test protein " << proteinName << " chain "
-             << chainNum << " test success!\n";
+        successCount++;
       }
     }
   }
+  cout << "Passed: " << successCount << "\nFailed: "<< failureCount<< '\n';
 }

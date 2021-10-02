@@ -1,14 +1,20 @@
 output: Atom.o fileParser.o main.o
-	g++ -std=c++11 Atom.o  main.o  -o output
+	g++ -std=c++11 Atom.o  main.o -o output
 
-test: fileParsor.o test.o
-	g++ -std=c++11 fileParsor.o test.o -o test
+test: fileParser.o test_fasta.o
+	g++ -std=c++11 test_fasta.o -o test
+
+test_linux: fileParser.o test_fasta_linux.o
+	g++ -std=c++11 test_fasta_linux.o -o test_linux
 
 readChain.o: readChain.cpp
 	g++ -c  readChain.cpp
 
-test.o: test.cpp
-	g++ -c test.cpp
+test_fasta.o: test_fasta.cpp
+	g++ -c test_fasta.cpp
+
+test_fasta_linux.o: test_fasta_linux.cpp
+	g++ -c test_fasta_linux.cpp
 
 Residue.o: Residue.cpp
 	g++ -c  Residue.cpp
