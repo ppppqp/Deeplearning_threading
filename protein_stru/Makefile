@@ -1,8 +1,11 @@
 output: Atom.o fileParser.o main.o
-	g++ -std=c++11 Atom.o  main.o   -o output
+	g++ -std=c++11 Atom.o  main.o  -o output
 
 test: fileParsor.o test.o
-	g++ fileParsor.o test.o -o test
+	g++ -std=c++11 fileParsor.o test.o -o test
+
+readChain.o: readChain.cpp
+	g++ -c  readChain.cpp
 
 test.o: test.cpp
 	g++ -c test.cpp

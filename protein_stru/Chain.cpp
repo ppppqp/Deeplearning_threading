@@ -18,7 +18,7 @@ class Chain {
   char chainNum;             // chain number
   vector<Residue> residues;  // the residue it contains
   Chain();
-  Chain(Chain& c);
+  Chain(const Chain& c);
   Chain(char _chainNum);
   void L1Depth(string mode, string pattern, double localR);
   Chain getCAChain();
@@ -27,7 +27,7 @@ class Chain {
 Chain::Chain() {}
 Chain::Chain(char _chainNum)
     : chainNum(_chainNum), validResNum(0), residues(vector<Residue>()){};
-Chain::Chain(Chain& c)
+Chain::Chain(const Chain& c)
     : chainNum(c.chainNum),
       id(c.id),
       name(c.name),
