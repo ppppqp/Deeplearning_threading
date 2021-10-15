@@ -4,17 +4,17 @@ output: Atom.o fileParser.o main.o
 test: fileParser.o test_fasta.o
 	g++ -std=c++11 test_fasta.o -o test
 
-test_linux: fileParser.o test_fasta_linux.o
-	g++ -std=c++11 test_fasta_linux.o -o test_linux
+test_linux: test_fasta_linux.cpp
+	g++ -std=c++11 test_fasta_linux.cpp -o test_linux
 
 readChain.o: readChain.cpp
 	g++ -c  readChain.cpp
 
 test_fasta.o: test_fasta.cpp
-	g++ -c test_fasta.cpp
+	g++ -c -std=c++11 test_fasta.cpp
 
 test_fasta_linux.o: test_fasta_linux.cpp
-	g++ -c test_fasta_linux.cpp
+	g++ -c  -std=c++11 test_fasta_linux.cpp
 
 Residue.o: Residue.cpp
 	g++ -c  Residue.cpp
@@ -32,4 +32,7 @@ main.o: main.cpp
 	g++ -c  main.cpp
 
 clean: 
-	rm *.o output
+	rm *.o output test_linux
+
+
+# g++ -o  test -std=c++11 test.cpp

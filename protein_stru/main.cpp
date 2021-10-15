@@ -18,7 +18,6 @@ int main(int argc, char* argv[]) {
   try {
     PDBParser parser(filename, isChain);
     parser.parse();
-
     parser.output2Fasta();
     parser.getL1Depth('A');
   } catch (const char* error) {

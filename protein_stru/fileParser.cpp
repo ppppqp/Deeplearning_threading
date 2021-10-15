@@ -21,7 +21,7 @@ using std::string;
 using std::vector;
 const double RESIDUALS_PER_LINE = 13;
 string dropSemiColon(string s) {
-  if (s[s.length()-1] == ';') s.erase(s.length() - 1,1);
+  if (s[s.length() - 1] == ';') s.erase(s.length() - 1, 1);
   return s;
 }
 class firstLineSwitch {
@@ -44,10 +44,11 @@ class PDBParser {
   std::ifstream fin;
   // molecule -> chain -> residue -> atom
  public:
-  PDBParser(string _filename, bool _isChain) : filename(_filename), isChain(_isChain){};
+  PDBParser(string _filename, bool _isChain)
+      : filename(_filename), isChain(_isChain){};
   void parse();
   void parseCompnd(std::stringstream& ss);
-  void parseAtom(std::stringstream& ss, int length);
+  void parseAtom(string line);
   void parseSeqres(std::stringstream& ss);
   void parseHeader(std::stringstream& ss);
   void output2Fasta();
@@ -64,10 +65,10 @@ void PDBParser::parse() {
   string line;
   string junk;
   int count = 0;
-  if(isChain){
+  if (isChain) {
     size_t nameStart = filename.find_last_of('/');
-    proteinName = filename.substr(nameStart+1, 4);
-    uniformChainNum = filename[nameStart+5];
+    proteinName = filename.substr(nameStart + 1, 4);
+    uniformChainNum = filename[nameStart + 5];
   }
   while (getline(fin, line)) {  // successful load file
     std::stringstream ss(line);
@@ -83,11 +84,11 @@ void PDBParser::parse() {
     }
     count++;
     if (lineType == "HEADER") {
-      parseHeader(ss);
+      // parseHeader(ss);
       continue;
     }
     if (lineType == "ATOM") {  // parse ATOM field
-      parseAtom(ss, line.size());
+      parseAtom(line);
       continue;
     }
   }
@@ -134,21 +135,36 @@ void PDBParser::parseCompnd(std::stringstream& ss) {
     chainIdList.push_back(c.chainNum);
   }
 }
-void PDBParser::parseAtom(std::stringstream& ss, int length) {
+void PDBParser::parseAtom(string line) {
   AtomInfo atomInfo;
-  string junk;
-  ss >> junk >> atomInfo.atomType >> atomInfo.residue;
-  if (!isChain) ss >> atomInfo.chainNum;
-  else atomInfo.chainNum=uniformChainNum;
-  ss >> atomInfo.residueId >> atomInfo.x >> atomInfo.y >> atomInfo.z;
-  if (length > 60) ss >> atomInfo.occupancy;
-  if (length > 66) ss >> atomInfo.beta;
-  if (length > 78)
-    ss >> atomInfo.element;
-  else if (!(atomInfo.atomType[0] > '0' && atomInfo.atomType[0] < '9'))
-    atomInfo.element = atomInfo.atomType[0];
-  else
-    atomInfo.element = atomInfo.atomType[1];
+
+  atomInfo.atomType = line.substr(12,4);
+  trim(atomInfo.atomType);
+
+  atomInfo.residue = line.substr(17,3);
+  trim (atomInfo.atomType);
+
+  atomInfo.chainNum = line[21];
+  if(atomInfo.chainNum== ' ') atomInfo.chainNum = uniformChainNum;
+  
+  atomInfo.residueId =  stoi(line.substr(22,4));
+
+  atomInfo.x = stod(line.substr(30,8));
+  atomInfo.y = stod(line.substr(38, 8));
+  atomInfo.z = stod(line.substr(46,8));
+  string eleStr = "";
+  if(line.length() > 60) atomInfo.occupancy = stod(line.substr(54,6));
+  if(line.length() > 66) atomInfo.beta = stod(line.substr(60,6));
+  if(line.length() > 78 && line.substr(76,2)!="  ") {
+      eleStr = line.substr(76,2);
+      trim(eleStr);
+      if(eleStr.length()!=0) atomInfo.element = eleStr[0];
+  }
+  else {
+      if(!(atomInfo.atomType[0]>='0' && atomInfo.atomType[0] <= '9'))
+          atomInfo.element = atomInfo.atomType[0];
+      else atomInfo.element = atomInfo.atomType[1];
+  }
   Atom atom(atomInfo);
   inferChain(atomInfo.chainNum);  // make sure chain exists
   inferResidue(atomInfo.chainNum, atomInfo.residueId,
@@ -194,19 +210,19 @@ void PDBParser::output2Fasta() {
   const int resPerLine = 70;
   fout.open("pdb2fasta");
   for (int i = 0; i < chainIdList.size(); i++) {
-      int count = 1;
-      Chain& c = chains[chainIdList[i]];
-      fout << '>' << proteinName << chainIdList[i] << "  " << c.validResNum
-           << '\n';
-      for (int j = 0; j < c.residues.size(); j++) {
-        if (c.residues[j].valid) {
-          fout << pdb2fasta(c.residues[j].type);
-          if (count % resPerLine == 0) fout << '\n';
-          count++;
-        }
+    int count = 1;
+    Chain& c = chains[chainIdList[i]];
+    fout << '>' << proteinName << chainIdList[i] << "  " << c.validResNum
+         << '\n';
+    for (int j = 0; j < c.residues.size(); j++) {
+      if (c.residues[j].valid) {
+        fout << pdb2fasta(c.residues[j].type);
+        if (count % resPerLine == 0) fout << '\n';
+        count++;
       }
-      fout << '\n';
     }
+    fout << '\n';
+  }
   fout.close();
 }
 void PDBParser::parseSeqres(std::stringstream& ss) {
