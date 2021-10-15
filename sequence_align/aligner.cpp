@@ -5,6 +5,8 @@
 #include <sstream>
 #include <vector>
 using namespace std;
+//https://www.youtube.com/watch?v=NqYY0PJbD3s
+//https://www.youtube.com/watch?v=xyUd80lgvJc
 const double inf = numeric_limits<double>::infinity();
 class Cell {
  public:
