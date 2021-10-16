@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <iomanip>
+#include <map>
 using namespace std;
 const double inf = numeric_limits<double>::infinity();
 class Cell {
@@ -11,28 +13,35 @@ class Cell {
   double value;
   char trace;
 };
+
 class Aligner {
  private:
-  string filename1, filename2;
+  string filename1, filename2, rubricFile;
   string seqX, seqY;
   string seqXAligned, seqYAligned;
+  vector<vector<int> >rubric;
   vector<vector<Cell> > M, X, Y;
+  map<char, int> res2Index;
   double alignScore;
   // M: match, X: insert @ seq1, Y: insert @ seq2
   double gapOpen, gapExt;
 
  public:
   Aligner(){};
-  Aligner(string _filename1, string _filename2, double _gapOpen, double _gapExt)
+  Aligner(string _filename1, string _filename2, string _rubricFile, double _gapOpen, double _gapExt)
       : filename1(_filename1),
         filename2(_filename2),
+        rubricFile(_rubricFile),
         gapOpen(_gapOpen),
         gapExt(_gapExt) {
     ifstream file1(_filename1), file2(_filename2);
     file1 >> seqX;
     file2 >> seqY;
+    readRubric();
   };
+  void readRubric();
   void align();
+  double score(char a, char b);
   void print();
   void printMatrix(vector<vector<Cell> >&m);
 };
@@ -43,7 +52,26 @@ void resizeMatrix(vector<vector<Cell> >& m, int height, int width) {
     for (int j = 0; j < width; j++) {
       m[i][j].value = 0;
       m[i][j].trace = 'N';
+      if(i==0) m[i][j].trace='X';
+      if(j==0) m[i][j].trace='Y';
     }
+  }
+}
+void Aligner::readRubric(){
+  rubric = vector<vector<int> >(25, vector<int>(25));
+  ifstream rubricFileReader(rubricFile);
+  for(int i = 0; i < 25; i++){
+    char res;
+    rubricFileReader >> res;
+    res2Index[res] = i;
+    cout << res << res2Index[res] << endl;
+  }
+  for(int i = 0; i < 25; i++){
+    for(int j = 0; j < 25; j++){
+      rubricFileReader >> rubric[i][j];
+      cout << rubric[i][j] << ' ';
+    }
+    cout << endl;
   }
 }
 void calCell(Cell& c, double m, double x, double y) {
@@ -58,7 +86,16 @@ void calCell(Cell& c, double m, double x, double y) {
     c.trace = 'Y';
   }
 }
-double score(char a, char b) { return (a == b) ? 1 : -1; }
+double Aligner::score(char a, char b) {
+  int indexA, indexB;
+  if(res2Index.find(a)!=res2Index.end()) 
+  indexA = res2Index[a];
+  else indexA = res2Index['*'];
+  if(res2Index.find(b)!=res2Index.end()) 
+  indexB = res2Index[b];
+  else indexB = res2Index['*'];
+  return rubric[indexA][indexB];
+}
 void Aligner::align() {
   int xLength = seqX.length();
   int yLength = seqY.length();
@@ -106,7 +143,7 @@ void Aligner::align() {
     cellType = 'Y';
     alignScore = Y[i][j].value;
   }
-
+  cout << "start back tracing" << endl;
   while (i > 0 || j > 0) {
     if(cellType == 'X') curCell = X[i][j];
     if(cellType == 'Y') curCell = Y[i][j];
@@ -161,7 +198,7 @@ void Aligner::printMatrix(vector<vector<Cell> >&m){
     cout << "Start printMatrix: \n";
     for(int i = 0; i < m.size(); i++){
         for(int j = 0; j < m[0].size(); j++){
-            cout << setw(5) << m[i][j].trace << ' ';
+            cout << std::setw(5) << m[i][j].trace << ' ';
         }
         cout << endl;
     }
