@@ -23,8 +23,12 @@ class Aligner {
   string seqXAligned, seqYAligned;
   vector<vector<int> >rubric;
   vector<vector<Cell> > M, X, Y;
+  // X means seqX align to a gap in SeqY. So If choose X, it is the same as moving along SeqX (see how next in SeqX fit current SeqY)
+  // Y means seqY align to a gap. So If choose Y, it is the same as moving along SeqY
   map<char, int> res2Index;
   double alignScore;
+  int alignedLength, IdenticalLength;
+  double sequenceIdentity;
   // M: match, X: insert @ seq1, Y: insert @ seq2
   double gapOpen, gapExt;
 
@@ -34,6 +38,9 @@ class Aligner {
       : filename1(_filename1),
         filename2(_filename2),
         rubricFile(_rubricFile),
+        alignedLength(0),
+        sequenceIdentity(0),
+        IdenticalLength(0),
         gapOpen(_gapOpen),
         gapExt(_gapExt) {
     ifstream file1(_filename1), file2(_filename2);
@@ -66,14 +73,11 @@ void Aligner::readRubric(){
     char res;
     rubricFileReader >> res;
     res2Index[res] = i;
-    cout << res << res2Index[res] << endl;
   }
   for(int i = 0; i < 25; i++){
     for(int j = 0; j < 25; j++){
       rubricFileReader >> rubric[i][j];
-      cout << rubric[i][j] << ' ';
     }
-    cout << endl;
   }
 }
 void calCell(Cell& c, double m, double x, double y) {
@@ -110,6 +114,8 @@ void Aligner::align() {
   for (int j = 1; j <= xLength; j++) M[0][j].value = -inf;
   // initialize x matrix
   X[0][0].value = -gapOpen;
+  // Initially for X, SeqY axis is -inf because we can't align a gap in X to a gap in Y (implied by X[0][j])
+  // Moving along SeqX axis is OK because we are aligining the first j element in SeqX to gaps in SeqY
   for (int i = 1; i <= yLength; i++) X[i][0].value = -inf;
   for (int j = 1; j <= xLength; j++) X[0][j].value = X[0][j-1].value - gapExt;
   // initialize y matrix
@@ -120,6 +126,7 @@ void Aligner::align() {
   for (int i = 1; i <= yLength; i++) {
     for (int j = 1; j <= xLength; j++) {
       // calculate M[i][j]
+      // i-1 because the seq starts with 0
       calCell(M[i][j], M[i - 1][j - 1].value + score(seqX[j - 1], seqY[i - 1]),
               X[i - 1][j - 1].value + score(seqX[j - 1], seqY[i - 1]),
               Y[i - 1][j - 1].value + score(seqX[j - 1], seqY[i - 1]));
@@ -152,6 +159,8 @@ void Aligner::align() {
     if(cellType == 'M') curCell = M[i][j];
     if (cellType == 'M') {
       // match
+      alignedLength ++;
+      if(seqX[j-1]==seqY[i-1]) IdenticalLength++;
       seqXAligned += seqX[j - 1];
       seqYAligned += seqY[i - 1];
       cellType = curCell.trace;
@@ -181,6 +190,9 @@ void Aligner::align() {
 }
 void Aligner::print() {
   cout << "Aligned Sequence Score:" << alignScore << endl;
+  cout << "Aligned Length: "<< alignedLength << endl;
+  cout << "Identical Length:" << IdenticalLength << endl;
+  cout << "Sequence identity: " << static_cast<double>(IdenticalLength)/static_cast<double>(seqY.length()) << endl; 
   cout << "Aligned Sequence Result:" << endl;
   int resPerLine = 50;
   assert(seqXAligned.length() == seqYAligned.length());
@@ -200,7 +212,7 @@ void Aligner::printMatrix(vector<vector<Cell> >&m){
     cout << "Start printMatrix: \n";
     for(int i = 0; i < m.size(); i++){
         for(int j = 0; j < m[0].size(); j++){
-            cout << std::setw(5) << m[i][j].trace << ' ';
+            cout << std::setw(5) << m[i][j].value << ' ';
         }
         cout << endl;
     }
