@@ -1,0 +1,15 @@
+#!/bin/bash
+input="./pdb_list"
+count=0
+
+while read -r line
+do
+  pdb="$(echo $line | grep -oP '[0-9][A-Z]\w* ?')"
+  # echo ${pdb%??}
+  wget -P ./pdb https://files.rcsb.org/download/${pdb%??}.pdb
+  if [ $? == 0 ]; then 
+    ((count++));
+  fi
+done < "$input"
+echo total pdb files: $count
+# 9021

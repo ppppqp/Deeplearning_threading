@@ -53,6 +53,7 @@ class Aligner {
   double score(char a, char b);
   void print();
   void printMatrix(vector<vector<Cell> >&m);
+  double calculateScore(string seqXAligned, string seqYAligned);
 };
 void resizeMatrix(vector<vector<Cell> >& m, int height, int width) {
   m.resize(height);
@@ -120,7 +121,7 @@ void Aligner::align() {
   for (int j = 1; j <= xLength; j++) X[0][j].value = X[0][j-1].value - gapExt;
   // initialize y matrix
   Y[0][0].value = -gapOpen;
-  for (int i = 1; i <= yLength; i++) Y[i][0].value = Y[i][0].value - gapExt;
+  for (int i = 1; i <= yLength; i++) Y[i][0].value = Y[i-1][0].value - gapExt;
   for (int j = 1; j <= xLength; j++) Y[0][j].value =  -inf;
   // propogate weight
   for (int i = 1; i <= yLength; i++) {
@@ -138,6 +139,9 @@ void Aligner::align() {
               Y[i-1][j].value - gapExt);
     }
   }
+  printMatrix(M);
+  printMatrix(X);
+  printMatrix(Y);
   int i = yLength, j = xLength;
   Cell curCell = M[i][j];
   char cellType = 'M';
@@ -193,6 +197,7 @@ void Aligner::print() {
   cout << "Aligned Length: "<< alignedLength << endl;
   cout << "Identical Length:" << IdenticalLength << endl;
   cout << "Sequence identity: " << static_cast<double>(IdenticalLength)/static_cast<double>(seqY.length()) << endl; 
+  cout << "Calculated Score:" << calculateScore(seqXAligned, seqYAligned) << endl;
   cout << "Aligned Sequence Result:" << endl;
   int resPerLine = 50;
   assert(seqXAligned.length() == seqYAligned.length());
@@ -218,4 +223,29 @@ void Aligner::printMatrix(vector<vector<Cell> >&m){
     }
     cout << "End printMatrix: \n";
 
+}
+double Aligner::calculateScore(string seqXAligned, string seqYAligned){
+  int seqLength = seqXAligned.length();
+  bool isGapOpenX = true, isGapOpenY = true;
+  double alignScore = 0; 
+  for(int i = 0; i < seqLength; i++){
+    // cout << "aligned Score =" << alignScore << endl;
+    if(seqXAligned[i] == '-' || seqYAligned[i] == '-'){
+      if(seqXAligned[i] == '-' && isGapOpenX){
+        alignScore -= gapOpen;
+        isGapOpenX = false;
+      }
+      else if(seqYAligned[i] == '-' && isGapOpenY){
+        alignScore -= gapOpen;
+        isGapOpenY = false;
+      }
+      else alignScore -= gapExt;
+    }
+    else{
+      alignScore += score(seqXAligned[i], seqYAligned[i]);
+      isGapOpenX = true;
+      isGapOpenY = true;
+    }
+  }
+  return alignScore;
 }
