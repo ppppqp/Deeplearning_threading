@@ -12,11 +12,9 @@ using std::vector;
 
 int main(int argc, char* argv[]) {
   std::string filename = argv[1];
-  bool isChain = false;
-  if(argc > 1) isChain = true;
   cout << filename << endl;
   try {
-    PDBParser parser(filename, isChain);
+    PDBParser parser(filename);
     parser.parse();
     parser.output2Fasta();
     parser.getL1Depth('A');

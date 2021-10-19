@@ -40,12 +40,11 @@ class PDBParser {
   map<char, Chain> chains;  // chains it contains
   vector<char> chainIdList;
   firstLineSwitch Switch;
-  bool isChain;
   std::ifstream fin;
   // molecule -> chain -> residue -> atom
  public:
-  PDBParser(string _filename, bool _isChain)
-      : filename(_filename), isChain(_isChain){};
+  PDBParser(string _filename)
+      : filename(_filename){};
   void parse();
   void parseCompnd(std::stringstream& ss);
   void parseAtom(string line);
@@ -65,11 +64,11 @@ void PDBParser::parse() {
   string line;
   string junk;
   int count = 0;
-  if (isChain) {
-    size_t nameStart = filename.find_last_of('/');
-    proteinName = filename.substr(nameStart + 1, 4);
-    uniformChainNum = filename[nameStart + 5];
-  }
+  size_t nameStart = filename.find_last_of('/');
+  proteinName = filename.substr(nameStart + 1, 4);
+  std::transform(proteinName.begin(), proteinName.end(), proteinName.begin(),
+                ::tolower);
+  if(filename.size() > 8) uniformChainNum = filename[nameStart + 5];
   while (getline(fin, line)) {  // successful load file
     std::stringstream ss(line);
     string lineType;
@@ -155,7 +154,7 @@ void PDBParser::parseAtom(string line) {
   string eleStr = "";
   if(line.length() > 60) atomInfo.occupancy = stod(line.substr(54,6));
   if(line.length() > 66) atomInfo.beta = stod(line.substr(60,6));
-  if(line.length() > 78 && line.substr(76,2)!="  ") {
+  if(line.length() >= 78 && line.substr(76,2)!="  ") {
       eleStr = line.substr(76,2);
       trim(eleStr);
       if(eleStr.length()!=0) atomInfo.element = eleStr[0];

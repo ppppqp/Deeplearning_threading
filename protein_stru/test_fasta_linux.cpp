@@ -79,7 +79,7 @@ int main() {
         correct += line;
       }
       // using pdbParser to generat fasta file
-      PDBParser parser(pdbFileName, true);
+      PDBParser parser(pdbFileName);
 
       parser.parse();
 

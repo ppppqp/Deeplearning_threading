@@ -8,7 +8,8 @@ using std::string;
 #include <algorithm>
 #include <cctype>
 #include <string>
-
+// ssh -Y your_username@lighthouse.arc-ts.umich.edu
+// HHpred PfamScan
 char pdb2fasta(string pbdResidue) {
   if (pbdResidue == "ALA") return 'A';
   if (pbdResidue == "ARG") return 'R';
@@ -32,28 +33,35 @@ char pdb2fasta(string pbdResidue) {
   if (pbdResidue == "TYR") return 'Y';
   if (pbdResidue == "VAL") return 'V';
   if (pbdResidue == "ILE") return 'I';
-  cout << pbdResidue << endl;
-  throw "No corresponding pdb2fasta conversion";
+  if (pbdResidue == " DT") return 'T';
+  if (pbdResidue == " DG") return 'G';
+  if (pbdResidue == " DA") return 'A';
+  if (pbdResidue == " DC") return 'C';
+
+  return 'A';
+//   cout << pbdResidue << endl;
+//   throw "No corresponding pdb2fasta conversion";
 }
 
 // trim from start (in place)
 static inline void ltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-        return !std::isspace(ch);
-    }));
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+            return !std::isspace(ch);
+          }));
 }
 
 // trim from end (in place)
 static inline void rtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
-        return !std::isspace(ch);
-    }).base(), s.end());
+  s.erase(std::find_if(s.rbegin(), s.rend(),
+                       [](unsigned char ch) { return !std::isspace(ch); })
+              .base(),
+          s.end());
 }
 
 // trim from both ends (in place)
 static inline void trim(std::string &s) {
-    ltrim(s);
-    rtrim(s);
+  ltrim(s);
+  rtrim(s);
 }
 
 #endif
