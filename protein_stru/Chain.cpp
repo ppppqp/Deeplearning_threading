@@ -13,20 +13,25 @@ class Chain {
   string engineered;
   string scientific;
   string common;
+  int resBaseIndex;  // the base index for each residue
   int validResNum;
   int taxId;
   char chainNum;             // chain number
   vector<Residue> residues;  // the residue it contains
   Chain();
   Chain(const Chain& c);
-  Chain(char _chainNum);
+  Chain(char _chainNum, int residueId);
+  void cleanNonCARes();
   void L1Depth(string mode, string pattern, double localR);
   Chain getCAChain();
   void print();
 };
 Chain::Chain() {}
-Chain::Chain(char _chainNum)
-    : chainNum(_chainNum), validResNum(0), residues(vector<Residue>()){};
+Chain::Chain(char _chainNum, int residueId)
+    : chainNum(_chainNum),
+      validResNum(0),
+      resBaseIndex(residueId),
+      residues(vector<Residue>()){};
 Chain::Chain(const Chain& c)
     : chainNum(c.chainNum),
       id(c.id),
@@ -37,8 +42,19 @@ Chain::Chain(const Chain& c)
       common(c.common),
       taxId(c.taxId),
       residues(c.residues){};
+void Chain::cleanNonCARes() {
+  for (int i = 0; i < residues.size(); i++) {
+    Residue& res = residues[i];
+    if(!res.valid) continue;
+    Atom CA = res.getAtom("CA");
+    if (!CA.valid) {
+      res.valid = false;
+      validResNum--;
+    }
+  }
+}
 Chain Chain::getCAChain() {
-  Chain newChain(chainNum);
+  Chain newChain(chainNum, 0);
   for (int i = 0; i < residues.size(); i++) {
     Residue& res = residues[i];
     Atom CA = res.getAtom("CA");

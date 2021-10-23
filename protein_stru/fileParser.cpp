@@ -51,7 +51,7 @@ class PDBParser {
   void parseSeqres(std::stringstream& ss);
   void parseHeader(std::stringstream& ss);
   void output2Fasta();
-  void inferChain(char chainNum);
+  void inferChain(char chainNum, int residueId);
   void inferResidue(char chainNum, int residueId, string type);
   void getL1Depth(char chainNum);
 };
@@ -91,6 +91,8 @@ void PDBParser::parse() {
       continue;
     }
   }
+  map<char, Chain>::iterator it;
+  for(it = chains.begin(); it!=chains.end(); it++) it->second.cleanNonCARes();
 };
 void PDBParser::parseHeader(std::stringstream& ss) {
   while (ss >> proteinName) {
@@ -136,7 +138,8 @@ void PDBParser::parseCompnd(std::stringstream& ss) {
 }
 void PDBParser::parseAtom(string line) {
   AtomInfo atomInfo;
-
+  bool debug = false;
+  if(debug) cout << line << endl;
   atomInfo.atomType = line.substr(12,4);
   trim(atomInfo.atomType);
 
@@ -165,17 +168,20 @@ void PDBParser::parseAtom(string line) {
       else atomInfo.element = atomInfo.atomType[1];
   }
   Atom atom(atomInfo);
-  inferChain(atomInfo.chainNum);  // make sure chain exists
+  if(debug) cout << "break point 1" << endl;
+  inferChain(atomInfo.chainNum, atomInfo.residueId);  // make sure chain exists
+  atomInfo.residueId -= chains[atomInfo.chainNum].resBaseIndex; // convert to zero based index
   inferResidue(atomInfo.chainNum, atomInfo.residueId,
                atomInfo.residue);  // make sure residue exists
-  chains[atomInfo.chainNum].residues[atomInfo.residueId - 1].atoms.push_back(
+  if(debug) cout << "break point 3" << endl;
+  chains[atomInfo.chainNum].residues[atomInfo.residueId].atoms.push_back(
       atom);
 }
-void PDBParser::inferChain(char chainNum) {
+void PDBParser::inferChain(char chainNum, int residueId) {
   map<char, Chain>::iterator it;
   it = chains.find(chainNum);
   if (it == chains.end()) {
-    Chain c(chainNum);
+    Chain c(chainNum, residueId);
     chainIdList.push_back(chainNum);
     chains[chainNum] = c;
   }
@@ -183,11 +189,11 @@ void PDBParser::inferChain(char chainNum) {
 }
 void PDBParser::inferResidue(char chainNum, int residueId, string type) {
   vector<Residue>& resVec = chains[chainNum].residues;
-  if (resVec.size() < residueId) {  // residueId starts from 1
-    // for example, if current size is 5, residueId is 7, then we have X, X, X,
+  if (resVec.size() < residueId + 1) {  // residueId starts from 0
+    // for example, if current size is 6, residueId is 7, then we have X, X, X, X,
     // X, X, _, X so we need to push one dummy item. After we push the dummy
-    // item, size=6, residueId-1=6
-    int gap = residueId - resVec.size() - 1;
+    // item, size=7, residueId=7
+    int gap = residueId - resVec.size();
     for (int i = 0; i < gap; i++) {
       // push until residueId == resVec.size()+1
       Residue r(false);
@@ -197,9 +203,9 @@ void PDBParser::inferResidue(char chainNum, int residueId, string type) {
     Residue r(type, residueId, chainNum);
     resVec.push_back(r);
     chains[chainNum].validResNum++;
-  } else if (!resVec[residueId - 1].valid) {  // in case disorder
+  } else if (!resVec[residueId].valid) {  // in case disorder
     Residue r(type, residueId, chainNum);
-    resVec[residueId - 1] = r;
+    resVec[residueId] = r;
     chains[chainNum].validResNum++;
   }
 }

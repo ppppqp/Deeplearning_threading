@@ -69,7 +69,7 @@ int main() {
         string proteinName = indicator.substr(1, 4);
         std::transform(proteinName.begin(), proteinName.end(),
                        proteinName.begin(), ::toupper);
-        cout << "protein name" << proteinName << endl;
+        // cout << "protein name" << proteinName << endl;
         string pdbFileName = "../data/pdb/" + proteinName + ".pdb";
         if (access(pdbFileName.c_str(), F_OK) != 0) {
           // no avaiable pdb file
@@ -114,8 +114,12 @@ int main() {
           failureCount++;
           cout << setw(30) << "Test protein " << proteinName << " chain "
                << chainNum << " test FAILED!\n";
-          cout << "output is " << output << '\n';
+          cout << "output is  " << output << '\n';
           cout << "correct is " << correct << '\n';
+          for(int i = 0; i < output.size(); i++) if(output[i]!=correct[i]){
+            cout << "first index: " << i << endl;
+            break;
+          }
         } else {
           successCount++;
           cout << "Test protein " << proteinName << " chain " << chainNum

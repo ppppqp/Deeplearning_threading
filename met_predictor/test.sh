@@ -1,0 +1,1 @@
+python Met-Predictor_12302019/Run_Metpredictor.py -i test_fasta -o outfile -t R -s 1 -r 1
