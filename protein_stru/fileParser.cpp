@@ -51,6 +51,7 @@ class PDBParser {
   void parseSeqres(std::stringstream& ss);
   void parseHeader(std::stringstream& ss);
   void output2Fasta();
+  void output2PDB(char chainNum, string prefix);
   void inferChain(char chainNum, int residueId);
   void inferResidue(char chainNum, int residueId, string type);
   void getL1Depth(char chainNum);
@@ -144,7 +145,7 @@ void PDBParser::parseAtom(string line) {
   trim(atomInfo.atomType);
 
   atomInfo.residue = line.substr(17,3);
-  trim (atomInfo.atomType);
+  trim(atomInfo.residue);
 
   atomInfo.chainNum = line[21];
   if(atomInfo.chainNum== ' ') atomInfo.chainNum = uniformChainNum;
@@ -207,6 +208,44 @@ void PDBParser::inferResidue(char chainNum, int residueId, string type) {
     Residue r(type, residueId, chainNum);
     resVec[residueId] = r;
     chains[chainNum].validResNum++;
+  }
+}
+void PDBParser::output2PDB(char chainNum, string prefix){
+  std::ofstream fout;
+
+  string fileName = prefix + proteinName + chainNum;
+  cout << "filename is " << fileName << endl;
+  fout.open(fileName.c_str());
+  Chain & chain = chains[chainNum];
+  vector<Residue> &residues = chain.residues;
+  int lineNum = 1;
+  for(int i = 0; i < residues.size(); i++){
+    if(residues[i].valid){
+      vector<Atom> &atoms = residues[i].atoms;
+      for(int j = 0; j < atoms.size(); j++){
+        // cout << "i = " << i << " j = " << j << endl;
+        if(atoms[j].valid){
+          Atom& atom = atoms[j];
+          fout << "ATOM  "; 
+          fout << setw(5) << lineNum << " ";
+          if(atom.atomType.size() < 4) fout << " " << std::left << setw(3) << atom.atomType;
+          else fout << atom.atomType;
+          fout << std::right << setw(4) << atom.residue;
+          
+          fout << setw(4) << atom.residueId << "   ";
+          fout << setw(8) << std::fixed << std::setprecision(3) << atom.x;
+          fout << setw(8) << std::fixed << std::setprecision(3) << atom.y;
+          fout << setw(8) << std::fixed << std::setprecision(3) << atom.z;
+
+          fout << setw(6) << std::fixed << std::setprecision(2) <<atom.occupancy;
+          fout << setw(6) << std::fixed << std::setprecision(2) << atom.beta;
+          fout << "          ";
+          fout << "  " << atom.element << endl;
+          // fout << "  " << atomInfo.charge << endl;
+          lineNum++;
+        }
+      }
+    }
   }
 }
 void PDBParser::output2Fasta() {
