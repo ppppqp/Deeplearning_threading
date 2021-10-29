@@ -295,14 +295,12 @@ void PDBParser::output2PDB(char chainNum, string prefix){
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.x;
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.y;
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.z;
-          /*
+
           fout << setw(6) << std::fixed << std::setprecision(2) <<atom.occupancy;
           fout << setw(6) << std::fixed << std::setprecision(2) << atom.beta;
           fout << "          ";
           fout << "  " << atom.element << endl;
-          */
           // fout << "  " << atomInfo.charge << endl;
-          fout << endl;
           lineNum++;
         }
       }
