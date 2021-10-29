@@ -1,4 +1,4 @@
-#!/mnt/home/wuyunqiq/bin/python/anaconda2/bin/python
+#!usr/bin/python
 import sys;
 import os;
 import commands;

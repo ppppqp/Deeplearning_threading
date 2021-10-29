@@ -17,6 +17,7 @@ int main(int argc, char* argv[]) {
     PDBParser parser(filename);
     parser.parse();
     parser.output2Fasta();
+    parser.output2PDB('A', "./");
     parser.getL1Depth('A');
   } catch (const char* error) {
     cout << error << endl;

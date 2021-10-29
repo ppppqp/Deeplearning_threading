@@ -3,23 +3,24 @@
 ############################################# set your own folder ##################################################################
 # set Met_predictor home directory to your own path 
 setenv METHOME /nfs/amino-home/panqp/protein_stru/repo/met_predictor/Met-Predictor_12302019
-set mypython = /mnt/home/wuyunqiq/bin/python/anaconda2/bin/python
+set mypython = /nfs/amino-library/anaconda/bin/python
 ##################### soft already contained in package, if you want to use your own version, then change them ##################### 
 # Where the HHsuite/HHpred programs have been installed
-setenv HHLIB $METHOME/lib/hhsuite-2.0.16-linux-x86_64/
+setenv HHLIB /nfs/amino-library/HHpred/HHsuite_lometsD
 
 # The name of the PfamScan dir
-set pfamscandir = $METHOME/lib/PfamScan
+set pfamscandir = /nfs/amino-home/zhengwei/Pfam/PfamScan
 
 # pfamscan database dir
-set pfamdatadir = $METHOME/db/pfam
-
+set pfamdatadir = /nfs/amino-home/zhengwei/Pfam/PfamScan/data/
+set mono = /nfs/amino-home/zhengwei/bin/Mono/mono-4.2.1/bin/mono
 # Where the hmmer pragrams have been installed
 set hmmerdir = $METHOME/lib/hmmer
 setenv PATH $hmmerdir/bin:$PATH
 #setenv PERL5LIB $METHOME/lib/PfamScan:$METHOME/lib/perl5lib/lib/perl5
 #setenv PERL5LIB $METHOME/lib/PfamScan:$METHOME/lib/perl5lib/lib64/perl5:$PERL5LIB
 #setenv PERL5LIB $METHOME/lib/PfamScan:$METHOME/lib/perl5lib/share/perl5:$PERL5LIB
+
 setenv PERL5LIB $METHOME/lib/PfamScan:$PERL5LIB
 
 # Where the structure bin dir
@@ -36,7 +37,7 @@ echo "run pfamscan..."
 
 $pfamscandir/pfam_scan.pl -fasta $fastabasename.fasta -dir $pfamdatadir -as -outfile $fastabasename.psout -cpu 1
 
-$METHOME/lib/mono/bin/mono $METHOME/bin/PfamScanSplit.exe ./$fastabasename.fasta ./$fastabasename.psout ./
+$mono $METHOME/bin/PfamScanSplit.exe ./$fastabasename.fasta ./$fastabasename.psout ./
 
 mkdir -p $fastabasename\_fasta
 mkdir -p $fastabasename\_pdb
@@ -69,14 +70,14 @@ cp $fastabasename\_pdb/$fastaname.pdb ./input.pdb
 mv input.asa $fastabasename\_features/$fastaname.asa
 mv input.rsa $fastabasename\_features/$fastaname.rsa
 rm input.pdb
-$METHOME/lib/mono/bin/mono $METHOME/lib/Structure/chops.exe $fastabasename\_features/$fastaname.asa $fastabasename\_features/ single
-$METHOME/lib/mono/bin/mono $METHOME/lib/Structure/kthCH.exe $fastabasename\_pdb/$fastaname.pdb $fastabasename\_features/
+$mono $METHOME/lib/Structure/chops.exe $fastabasename\_features/$fastaname.asa $fastabasename\_features/ single
+$mono $METHOME/lib/Structure/kthCH.exe $fastabasename\_pdb/$fastaname.pdb $fastabasename\_features/
 echo "run residue depth..."
 $METHOME/lib/depth-1.0/DEPTH -i $fastabasename\_pdb/$fastaname.pdb -o $fastabasename\_features/$fastaname -n 10 -survive 3 -keep $fastabasename\_features/$fastaname-sol
 
 echo "run L1depth and HSE..."
    foreach R (5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30)
-   $METHOME/lib/mono/bin/mono $METHOME/lib/Structure/L1depth.exe $fastabasename\_pdb/  $fastabasename\_features/$R -getldepth atom-atom local $R  >/dev/null
+   $mono $METHOME/lib/Structure/L1depth.exe $fastabasename\_pdb/  $fastabasename\_features/$R -getldepth atom-atom local $R  >/dev/null
       foreach hsetype (HSEAU HSEBU HSEAD HSEBD)
       $mypython $METHOME/lib/Structure/calculateHSE.py -t $hsetype -r $R -o $fastabasename\_features/$R/$fastaname\_$hsetype$R.pdb $fastabasename\_pdb/$fastaname.pdb  >/dev/null
       end

@@ -33,12 +33,12 @@ char pdb2fasta(string pbdResidue) {
   if (pbdResidue == "TYR") return 'Y';
   if (pbdResidue == "VAL") return 'V';
   if (pbdResidue == "ILE") return 'I';
-  if (pbdResidue == " DT") return 'T';
-  if (pbdResidue == " DG") return 'G';
-  if (pbdResidue == " DA") return 'A';
-  if (pbdResidue == " DC") return 'C';
+  if (pbdResidue == "DT") return 'T';
+  if (pbdResidue == "DG") return 'G';
+  if (pbdResidue == "DA") return 'A';
+  if (pbdResidue == "DC") return 'C';
 
-  return 'A';
+  return 'G';
 //   cout << pbdResidue << endl;
 //   throw "No corresponding pdb2fasta conversion";
 }

@@ -3,3 +3,11 @@
 /Met-Predictor_12302019/db
 /Met-Predictor_12302019/example
 /Met-Predictor_12302019/lib
+/Met-Predictor_12302019/bin/*.exe
+/Met-Predictor_12302019/temp*
+/Met-Predictor_1230201/test_fasta*
+/Met-Predictor_12302019/.*
+/R.*
+/RDI.*
+/RMONO.*
+R.*

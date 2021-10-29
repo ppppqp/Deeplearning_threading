@@ -3,16 +3,16 @@
 ############################################# set your own folder ##################################################################
 # set Met_predictor home directory to your own path 
 setenv METHOME /nfs/amino-home/panqp/protein_stru/repo/met_predictor/Met-Predictor_12302019
-set mypython = /mnt/home/wuyunqiq/bin/python/anaconda2/bin/python
+set mypython = /nfs/amino-library/anaconda/bin/python
 ##################### soft already contained in package, if you want to use your own version, then change them ##################### 
 # Where the HHsuite programs have been installed
-setenv HHLIB $METHOME/lib/hhsuite-2.0.16-linux-x86_64/
+setenv HHLIB /nfs/amino-library/HHpred/HHsuite_lometsD
 
 # The name of hhblits database uniprot20
-set uniprot20 = /mnt/home/wuyunqiq/scratch/jlspzw/database/DeepMSADB/uniclust30_2017_04/uniclust30_2017_04 #uniprot20_2015_06
+set uniprot20 = /nfs/amino-home/zhng/local_library/uniclust30_2017_04/uniclust30_2017_04 #uniprot20_2015_06
 
 # The name of the BLAST data bank
-set dbname = /mnt/home/wuyunqiq/scratch/jlspzw/database/BlastNR/nr
+set dbname = /nfs/amino-library/nr/nr
 
 # Where the NCBI programs have been installed
 set ncbidir = $METHOME/lib/blast-2.2.26/bin
@@ -49,18 +49,18 @@ egrep -v "^>" $hhoutdir$hhtarget.a3m | sed 's/[a-z]//g' > $hhoutdir$hhtarget.aln
 set basename = $1:r
 set rootname = $basename:t
 
-# Generate a "unique" temporary filename root
+# # Generate a "unique" temporary filename root
 set hostid = `hostid`
 set tmproot = temp$$$hostid
 
 \cp -f $1 $tmproot.fasta
 
 #$1 /home/jlspzw/Psipred/test.fasta
-#echo $tmproot
+echo tmproot: $tmproot
 #temp31897007f0101 hostid
-#echo $basename
+echo basename: $basename
 #/home/jlspzw/Psipred/test
-#echo $rootname
+echo rootname: $rootname
 #test
 
 echo "Running PSI-BLAST with sequence" $1 "..."
