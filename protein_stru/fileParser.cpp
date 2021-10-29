@@ -40,11 +40,13 @@ class PDBParser {
   map<char, Chain> chains;  // chains it contains
   vector<char> chainIdList;
   firstLineSwitch Switch;
+  vector<Residue>altRes;
+  int lastResId;
   std::ifstream fin;
   // molecule -> chain -> residue -> atom
  public:
   PDBParser(string _filename)
-      : filename(_filename){};
+      : filename(_filename), lastResId(-1){};
   void parse();
   void parseCompnd(std::stringstream& ss);
   void parseAtom(string line);
@@ -55,6 +57,7 @@ class PDBParser {
   void inferChain(char chainNum, int residueId);
   void inferResidue(char chainNum, int residueId, string type);
   void getL1Depth(char chainNum);
+  void cleanAltRes();
 };
 
 void PDBParser::parse() {
@@ -93,8 +96,22 @@ void PDBParser::parse() {
     }
   }
   map<char, Chain>::iterator it;
+  cleanAltRes();
   for(it = chains.begin(); it!=chains.end(); it++) it->second.cleanNonCARes();
 };
+void PDBParser::cleanAltRes(){
+  for(int i = 0; i < altRes.size(); i++){
+      if(altRes[i].getAtom("CA").valid){
+        if(altRes[i].type.length() > 3){
+          altRes[i].type.erase(0,1);// get rid of the alt tag
+        }
+        inferResidue(altRes[i].chainId, altRes[i].residueId, altRes[i].type);  // make sure residue exists
+        chains[altRes[i].chainId].residues[altRes[i].residueId].atoms = altRes[i].atoms;
+        break;
+      }
+    }
+    altRes.clear();
+}
 void PDBParser::parseHeader(std::stringstream& ss) {
   while (ss >> proteinName) {
   };
@@ -139,22 +156,45 @@ void PDBParser::parseCompnd(std::stringstream& ss) {
 }
 void PDBParser::parseAtom(string line) {
   AtomInfo atomInfo;
-  bool debug = false;
-  if(debug) cout << line << endl;
+  char altTag = 'X';
+
   atomInfo.atomType = line.substr(12,4);
   trim(atomInfo.atomType);
+  if(atomInfo.atomType.length() == 4 && (atomInfo.atomType[0] == 'A' || atomInfo.atomType[0] == 'B')){
+    altTag = atomInfo.atomType[0];
+    atomInfo.atomType.erase(0,1);
+  }
 
-  atomInfo.residue = line.substr(17,3);
+  atomInfo.residue = line.substr(16,4);
   trim(atomInfo.residue);
+
 
   atomInfo.chainNum = line[21];
   if(atomInfo.chainNum== ' ') atomInfo.chainNum = uniformChainNum;
   
-  atomInfo.residueId =  stoi(line.substr(22,4));
+  string residueIdStr = line.substr(22,4);
+  for(int i = 0; i < residueIdStr.length(); i++){
+    if(isalpha(residueIdStr[i])){
+      altTag = residueIdStr[i];
+      residueIdStr[i] = ' ';
+      break;
+    }
+  }
+  atomInfo.residueId =  stoi(residueIdStr);
+
+
+  // complete alternative residue determination
+  // all conclude in residue name
+  if(altTag != 'X'){
+    atomInfo.residue.insert(atomInfo.residue.begin(), altTag);
+  }
+
+
 
   atomInfo.x = stod(line.substr(30,8));
   atomInfo.y = stod(line.substr(38, 8));
   atomInfo.z = stod(line.substr(46,8));
+
   string eleStr = "";
   if(line.length() > 60) atomInfo.occupancy = stod(line.substr(54,6));
   if(line.length() > 66) atomInfo.beta = stod(line.substr(60,6));
@@ -168,15 +208,34 @@ void PDBParser::parseAtom(string line) {
           atomInfo.element = atomInfo.atomType[0];
       else atomInfo.element = atomInfo.atomType[1];
   }
-  Atom atom(atomInfo);
-  if(debug) cout << "break point 1" << endl;
+
+  if(atomInfo.element == 'H') return;
+  // ignore H atoms
+
   inferChain(atomInfo.chainNum, atomInfo.residueId);  // make sure chain exists
   atomInfo.residueId -= chains[atomInfo.chainNum].resBaseIndex; // convert to zero based index
-  inferResidue(atomInfo.chainNum, atomInfo.residueId,
-               atomInfo.residue);  // make sure residue exists
-  if(debug) cout << "break point 3" << endl;
-  chains[atomInfo.chainNum].residues[atomInfo.residueId].atoms.push_back(
-      atom);
+  if (lastResId != atomInfo.residueId){
+    // a new residue now, checkout the last residue
+    if(lastResId != -1) cleanAltRes();
+    lastResId = atomInfo.residueId;
+  }
+  // push this one to altRes buffer
+  int index;
+  for(index = 0; index < altRes.size(); index++){
+    // check whether the residue already exists in the buffer
+    if(altRes[index].type == atomInfo.residue){
+      break;
+    }
+  }
+  if(index == altRes.size()){
+    // doesn't exist, create a new residue
+    Residue r(atomInfo.residue, atomInfo.residueId, atomInfo.chainNum);
+    altRes.push_back(r);
+  }
+  if(atomInfo.residue.length() > 3) atomInfo.residue.erase(0, 1);
+  Atom atom(atomInfo);
+  // keep atom clean
+  altRes[index].atoms.push_back(atom);
 }
 void PDBParser::inferChain(char chainNum, int residueId) {
   map<char, Chain>::iterator it;
@@ -214,7 +273,7 @@ void PDBParser::output2PDB(char chainNum, string prefix){
   std::ofstream fout;
 
   string fileName = prefix + proteinName + chainNum;
-  cout << "filename is " << fileName << endl;
+  cout << "Writing " << fileName << endl;
   fout.open(fileName.c_str());
   Chain & chain = chains[chainNum];
   vector<Residue> &residues = chain.residues;
@@ -231,22 +290,25 @@ void PDBParser::output2PDB(char chainNum, string prefix){
           if(atom.atomType.size() < 4) fout << " " << std::left << setw(3) << atom.atomType;
           else fout << atom.atomType;
           fout << std::right << setw(4) << atom.residue;
-          
-          fout << setw(4) << atom.residueId << "   ";
+          fout << "  "; // for chainNum;
+          fout << setw(4) << atom.residueId + 1 << "    ";// change to 1 based
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.x;
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.y;
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.z;
-
+          /*
           fout << setw(6) << std::fixed << std::setprecision(2) <<atom.occupancy;
           fout << setw(6) << std::fixed << std::setprecision(2) << atom.beta;
           fout << "          ";
           fout << "  " << atom.element << endl;
+          */
           // fout << "  " << atomInfo.charge << endl;
+          fout << endl;
           lineNum++;
         }
       }
     }
   }
+  fout << "TER\n";
 }
 void PDBParser::output2Fasta() {
   std::ofstream fout;

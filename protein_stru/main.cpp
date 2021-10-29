@@ -9,7 +9,7 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
-
+////./output ../data/pdb/2PU3.pdb
 int main(int argc, char* argv[]) {
   std::string filename = argv[1];
   cout << filename << endl;
