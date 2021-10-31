@@ -91,9 +91,11 @@ void PDBParser::parse() {
       continue;
     }
     if (lineType == "ATOM") {  // parse ATOM field
+      // cout << count << ' ' << line << endl;
       parseAtom(line);
       continue;
     }
+    
   }
   map<char, Chain>::iterator it;
   cleanAltRes();
@@ -211,9 +213,8 @@ void PDBParser::parseAtom(string line) {
 
   if(atomInfo.element == 'H') return;
   // ignore H atoms
-
   inferChain(atomInfo.chainNum, atomInfo.residueId);  // make sure chain exists
-  atomInfo.residueId -= chains[atomInfo.chainNum].resBaseIndex; // convert to zero based index
+  atomInfo.residueId += chains[atomInfo.chainNum].offset;
   if (lastResId != atomInfo.residueId){
     // a new residue now, checkout the last residue
     if(lastResId != -1) cleanAltRes();
@@ -249,6 +250,7 @@ void PDBParser::inferChain(char chainNum, int residueId) {
 }
 void PDBParser::inferResidue(char chainNum, int residueId, string type) {
   vector<Residue>& resVec = chains[chainNum].residues;
+  // cout << "residue ID" << residueId << endl;
   if (resVec.size() < residueId + 1) {  // residueId starts from 0
     // for example, if current size is 6, residueId is 7, then we have X, X, X, X,
     // X, X, _, X so we need to push one dummy item. After we push the dummy
@@ -278,6 +280,8 @@ void PDBParser::output2PDB(char chainNum, string prefix){
   Chain & chain = chains[chainNum];
   vector<Residue> &residues = chain.residues;
   int lineNum = 1;
+  bool baseIndexSet = false;
+  int baseIndex = 0;
   for(int i = 0; i < residues.size(); i++){
     if(residues[i].valid){
       vector<Atom> &atoms = residues[i].atoms;
@@ -291,7 +295,12 @@ void PDBParser::output2PDB(char chainNum, string prefix){
           else fout << atom.atomType;
           fout << std::right << setw(4) << atom.residue;
           fout << "  "; // for chainNum;
-          fout << setw(4) << atom.residueId + 1 << "    ";// change to 1 based
+          if(!baseIndexSet){
+             baseIndex = atom.residueId;
+             baseIndexSet = true;
+          }
+          int oneBasedIndex = atom.residueId - baseIndex + 1;
+          fout << setw(4) << oneBasedIndex << "    ";// change to 1 based
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.x;
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.y;
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.z;

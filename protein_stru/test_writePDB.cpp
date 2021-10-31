@@ -15,6 +15,7 @@ int main() {
   std::ifstream pdbList;
   std::ifstream completePDB;
   double vm, rss;
+  int count = 0;
   try {
     pdbList.open("../data/pdb_list");
     string line;
@@ -45,6 +46,8 @@ int main() {
         PDBParser parser(completePDBFile);
         parser.parse();
         parser.output2PDB(chainNum, "../data/clean/");
+        count ++;
+        cout << "#file written:" << count << endl;
     }
     /*
     double successCount = 0;

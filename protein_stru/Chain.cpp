@@ -13,7 +13,7 @@ class Chain {
   string engineered;
   string scientific;
   string common;
-  int resBaseIndex;  // the base index for each residue
+  int offset;  // the offset
   int validResNum;
   int taxId;
   char chainNum;             // chain number
@@ -30,7 +30,7 @@ Chain::Chain() {}
 Chain::Chain(char _chainNum, int residueId)
     : chainNum(_chainNum),
       validResNum(0),
-      resBaseIndex(residueId),
+      offset((residueId < 0) ? -residueId : 0),
       residues(vector<Residue>()){};
 Chain::Chain(const Chain& c)
     : chainNum(c.chainNum),

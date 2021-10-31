@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
     parser.parse();
     parser.output2Fasta();
     parser.output2PDB('A', "./");
-    parser.getL1Depth('A');
+    // parser.getL1Depth('B');
   } catch (const char* error) {
     cout << error << endl;
   }
