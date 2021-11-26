@@ -22,8 +22,9 @@ def getfragment(fastaname,fragmentdir):
 
 def getchops(chopsfile,site,window):
     chops = [];
-    begin = int(chopsfile.split('/')[-1].split('.')[0].split('_')[1][1:]);
-    halfwindow = (window - 1)/2;
+    # begin = int(chopsfile.split('/')[-1].split('.')[0].split('_')[1][1:]);
+    begin = 1
+    halfwindow = int((window - 1)/ 2)
     newsite = site - begin + 1 + halfwindow;
 
     outlist = [];
@@ -41,8 +42,9 @@ def getchops(chopsfile,site,window):
 
 def gethse(hsefile,site,window):
     hse = [];
-    begin = int(hsefile.split('/')[-1].split('.')[0].split('_')[1][1:]);
-    halfwindow = (window - 1)/2;
+    # begin = int(hsefile.split('/')[-1].split('.')[0].split('_')[1][1:]);
+    begin = 1
+    halfwindow = int((window - 1)/2);
     newsite = site - begin + 1 + halfwindow;
 
     outlist = [];
@@ -61,7 +63,8 @@ def gethse(hsefile,site,window):
 def getkth(kthfile,site,KR):
     kth = '0';
     
-    begin = int(kthfile.split('/')[-1].split('.')[0].split('_')[1][1:]);
+    # begin = int(kthfile.split('/')[-1].split('.')[0].split('_')[1][1:]);
+    begin = 1
     newsite = site - begin + 1;
     
     atoms = [];
@@ -85,7 +88,8 @@ def getkth(kthfile,site,KR):
 def getl1depth(l1file,site,KR):
     l1 = [];
         
-    begin = int(l1file.split('/')[-1].split('.')[0].split('_')[1][1:]);
+    # begin = int(l1file.split('/')[-1].split('.')[0].split('_')[1][1:]);
+    begin = 1
     newsite = site - begin + 1;
     
     atoms = [];
@@ -107,8 +111,9 @@ def getl1depth(l1file,site,KR):
 
 def getresiduedepth(residuefile,site,KR):
     residuedepth = '0';
-    
-    begin = int(residuefile.split('/')[-1].split('.')[0].split('_')[1][1:]);
+    # 
+    # begin = int(residuefile.split('/')[-1].split('.')[0].split('_')[1][1:]);
+    begin = 1
     newsite = site - begin + 1;
     
     atoms = [];
@@ -132,8 +137,9 @@ def getresiduedepth(residuefile,site,KR):
 def getrsa(rsafile,site,window):
     rsa = [];
     
-    begin = int(rsafile.split('/')[-1].split('.')[0].split('_')[1][1:]);
-    halfwindow = (window - 1)/2;
+    # begin = int(rsafile.split('/')[-1].split('.')[0].split('_')[1][1:]);
+    begin = 1
+    halfwindow = int((window - 1)/2);
     newsite = site - begin + 1 + halfwindow;
 
     outlist2 = [];
@@ -187,46 +193,46 @@ def gettmscore(tmscorefile):
     
 def get_stru_files(fastaname,KR,fragmentdir,chopsdir,hsedir,kthdir,l1dir,residuedir,rsadir,globalkthdir,tmscoredir,sitelist,window,index):
     outfilelist = [];
-    (begins,ends) = getfragment(fastaname,fragmentdir);
+    # (begins,ends) = getfragment(fastaname,fragmentdir);
     for node in range(0,len(sitelist)):
         site = sitelist[node];
         ########################
-        begin = '';
-        end = '';
-        for ii in range(0,len(begins)):
-            if site >= begins[ii] and site <= ends[ii]:
-                begin = str(begins[ii]);
-                end = str(ends[ii]);
+        # begin = '';
+        # end = '';
+        # for ii in range(0,len(begins)):
+        #     if site >= begins[ii] and site <= ends[ii]:
+        #         begin = str(begins[ii]);
+        #         end = str(ends[ii]);
         ########################
-        chopsfile = chopsdir + fastaname + '_s' + begin + '_e'+end+'.sch.pdb';
+        chopsfile = chopsdir + fastaname + '.sch.pdb';
         chops = getchops(chopsfile,site,window);
 
         hselist = [];
         for ii in range(5,31):
             for hsetype in ['_HSEAD','_HSEAU','_HSEBD','_HSEBU']:
-                hsefile = hsedir + str(ii) + '/' + fastaname + '_s' + begin + '_e' + end + hsetype + str(ii) + '.pdb';
+                hsefile = hsedir + str(ii) + '/' + fastaname + hsetype + str(ii) + '.pdb';
                 hse = gethse(hsefile,site,window);
                 hselist = hselist + hse;
 
-        kthfile = kthdir + fastaname + '_s' + begin + '_e'+end+'.ch.pdb';
+        kthfile = kthdir + fastaname  + '.ch.pdb';
         kth = getkth(kthfile,site,KR);
 
         l1list = [];
         for ii in range(5,31):
-            l1file = l1dir + str(ii) + '/' + fastaname + '_s' + begin + '_e' + end + '_atom-atom_local' + str(ii) + '.pdb';
+            l1file = l1dir + str(ii) + '/' + fastaname + '_atom-atom_local' + str(ii) + '.pdb';
             l1 = getl1depth(l1file,site,KR);
             l1list = l1list + l1;
 
-        residuefile = residuedir + fastaname + '_s' + begin + '_e'+end+'-atomic_depth.pdb';
+        residuefile = residuedir + fastaname + '-atomic_depth.pdb';
         residuedepth = getresiduedepth(residuefile,site,KR);
 
-        rsafile = rsadir + fastaname + '_s' + begin + '_e'+end+'.rsa';
+        rsafile = rsadir + fastaname +'.rsa';
         rsa = getrsa(rsafile,site,window);
 
         globalkthfile = globalkthdir + fastaname.replace('-','_') +'.ch.pdb';
         globalkth = getglobalkth(globalkthfile,site,KR);
 
-        tmscorefile = tmscoredir + fastaname+ '_s' + begin + '_e'+end +'.pdb';
+        tmscorefile = tmscoredir + fastaname + '.pdb';
         tmscore = gettmscore(tmscorefile);
         
         ########################
@@ -242,8 +248,8 @@ def get_stru_files(fastaname,KR,fragmentdir,chopsdir,hsedir,kthdir,l1dir,residue
         for ii in l1list:
             outfileline = outfileline + ' ' + str(index) + ':' + ii;
             index = index  + 1;
-        outfileline = outfileline + ' ' + str(index) + ':' + residuedepth;
-        index = index  + 1;
+        # outfileline = outfileline + ' ' + str(index) + ':' + residuedepth;
+        # index = index  + 1;
         for ii in rsa:
             outfileline = outfileline + ' ' + str(index) + ':' + ii;
             index = index  + 1;
