@@ -248,8 +248,8 @@ def get_stru_files(fastaname,KR,fragmentdir,chopsdir,hsedir,kthdir,l1dir,residue
         for ii in l1list:
             outfileline = outfileline + ' ' + str(index) + ':' + ii;
             index = index  + 1;
-        # outfileline = outfileline + ' ' + str(index) + ':' + residuedepth;
-        # index = index  + 1;
+        outfileline = outfileline + ' ' + str(index) + ':' + residuedepth;
+        index = index  + 1;
         for ii in rsa:
             outfileline = outfileline + ' ' + str(index) + ':' + ii;
             index = index  + 1;

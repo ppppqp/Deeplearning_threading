@@ -27,5 +27,8 @@ if __name__ == "__main__":
                 print("DIFFERENT: idx: ", idx, " f1:", f1_num, " f2:", f2_num)
             else:
                 print("SAME: idx: ", idx, " f1:", f1_num, " f2:", f2_num)
+        else:
+            print("f1",f1_seq[idx])
+            print("f2",f2_seq[idx])
     # progress.done()
     print("Comparision finished")

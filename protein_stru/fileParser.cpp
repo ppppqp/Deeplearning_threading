@@ -162,6 +162,7 @@ void PDBParser::parseAtom(string line) {
 
   atomInfo.atomType = line.substr(12,4);
   trim(atomInfo.atomType);
+
   if(atomInfo.atomType.length() == 4 && (atomInfo.atomType[0] == 'A' || atomInfo.atomType[0] == 'B')){
     altTag = atomInfo.atomType[0];
     atomInfo.atomType.erase(0,1);
@@ -170,6 +171,10 @@ void PDBParser::parseAtom(string line) {
   atomInfo.residue = line.substr(16,4);
   trim(atomInfo.residue);
 
+  if(atomInfo.residue.length() == 4 && (atomInfo.residue[0] == 'A' || atomInfo.residue[0] == 'B')){
+    altTag = atomInfo.residue[0];
+    atomInfo.residue.erase(0,1);
+  }
 
   atomInfo.chainNum = line[21];
   if(atomInfo.chainNum== ' ') atomInfo.chainNum = uniformChainNum;
@@ -187,7 +192,9 @@ void PDBParser::parseAtom(string line) {
 
   // complete alternative residue determination
   // all conclude in residue name
-  if(altTag != 'X'){
+  // cout << altTag << endl;
+  if(altTag != 'X' && altTag != 'A'){
+    // treat A alternative as normal.
     atomInfo.residue.insert(atomInfo.residue.begin(), altTag);
   }
 
@@ -282,6 +289,7 @@ void PDBParser::output2PDB(char chainNum, string prefix){
   int lineNum = 1;
   bool baseIndexSet = false;
   int baseIndex = 0;
+  int count = 1, prevId = 0;// for continuous residue indexing
   for(int i = 0; i < residues.size(); i++){
     if(residues[i].valid){
       vector<Atom> &atoms = residues[i].atoms;
@@ -298,9 +306,18 @@ void PDBParser::output2PDB(char chainNum, string prefix){
           if(!baseIndexSet){
              baseIndex = atom.residueId;
              baseIndexSet = true;
+             count = 1;
+             prevId = atom.residueId;
+          }
+          else{
+            if(prevId != atom.residueId){
+              prevId = atom.residueId;
+              count ++;
+            }
           }
           int oneBasedIndex = atom.residueId - baseIndex + 1;
-          fout << setw(4) << oneBasedIndex << "    ";// change to 1 based
+          // fout << setw(4) << oneBasedIndex << "    ";// change to 1 based
+          fout << setw(4) << count << "    ";// change to continuous based
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.x;
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.y;
           fout << setw(8) << std::fixed << std::setprecision(3) << atom.z;

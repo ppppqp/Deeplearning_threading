@@ -31,3 +31,5 @@ protein_stru/2pu3A
 protein_stru/1a1xA
 .gitignore
 protein_stru/pdb2fasta
+met_predictor/PtmGetFeatures/
+new_mat/env

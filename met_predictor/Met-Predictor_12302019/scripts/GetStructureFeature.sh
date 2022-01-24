@@ -73,6 +73,7 @@ rm input.pdb
 $mono $METHOME/lib/Structure/chops.exe $fastabasename\_features/$fastaname.asa $fastabasename\_features/ single
 $mono $METHOME/lib/Structure/kthCH.exe $fastabasename\_pdb/$fastaname.pdb $fastabasename\_features/
 echo "run residue depth..."
+echo $fastabasename
 $METHOME/lib/depth-1.0/DEPTH -i $fastabasename\_pdb/$fastaname.pdb -o $fastabasename\_features/$fastaname -n 10 -survive 3 -keep $fastabasename\_features/$fastaname-sol
 
 echo "run L1depth and HSE..."

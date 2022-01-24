@@ -10,21 +10,26 @@
 
 #include "fileParser.cpp"
 
-int main() {
+int main(int argc, char * argv[]) {
   std::ifstream reference;
   std::ifstream pdbList;
   std::ifstream completePDB;
   double vm, rss;
   int count = 0;
+  string pdbListFile = argv[1];
+  string completePDBPrefix = argv[2];
+  string cleanPDBFile = argv[3];
   try {
-    pdbList.open("../data/pdb_list");
+    pdbList.open(pdbListFile);
     string line;
-    getline(pdbList, line);// table header;
+    // getline(pdbList, line);// table header;
     while(getline(pdbList, line)){
         string proteinName = line.substr(0, 4);
+        std::transform(proteinName.begin(), proteinName.end(), proteinName.begin(),
+                ::toupper);
         char chainNum = line[4];
         string chainNumStr = line.substr(4,1);
-        string completePDBFile = "../data/pdb/"+proteinName+".pdb";
+        string completePDBFile = completePDBPrefix + proteinName + ".pdb";
         if (access(completePDBFile.c_str(), F_OK) != 0) {
           // no avaiable pdb file
           continue;
@@ -45,7 +50,7 @@ int main() {
         // cout << "successfully open files!" << endl;
         PDBParser parser(completePDBFile);
         parser.parse();
-        parser.output2PDB(chainNum, "../data/clean/");
+        parser.output2PDB(chainNum, cleanPDBFile);
         count ++;
         cout << "#file written:" << count << endl;
     }

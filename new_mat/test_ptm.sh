@@ -15,4 +15,4 @@ outfile=K.libsvm.old
 # residue=K
 # outfile=K.libsvm.old
 echo $fasta\n$aa\n$feature\n$sample\n$window\n$residue\n$outfile\n
-python3 PtmGetFeatures.py $fasta $aa $feature $sample $window $residue $outfile
+python3 PtmGetFeatures.py $fasta $aa $feature $sample $window $residue $outfile add_stru

@@ -5,6 +5,7 @@ from progress import ProgressBar
 import sys
 from typing import Sequence
 import math
+from utils import get_stru_files
 ResName = "ARNDCQEGHILKMFPSTWYV"
 factor1 = [ -0.591, 1.538, 0.945, 1.05, -1.343, 0.931, 1.357, -0.384, 0.336, -1.239, -1.019, 1.831, -0.663, -1.006, 0.189, -0.228, -0.032, -0.595, 0.26, -1.337]
 factor2 = [ -1.302, -0.055, 0.828, 0.302, 0.465, -0.179, -1.453, 1.652, -0.417, -0.547, -0.987, -0.561, -1.524, -0.59, 2.081, 1.399, 0.326, 0.009, 0.83, -0.279 ]
@@ -126,21 +127,24 @@ class Feature:
 
 class KNN_node:
     def __init__(self):
-        self.label = 0,
-        self.segment = ' ',
+        self.label = 0
+        self.segment = ' '
         self.distance = 0.0
+        self.index = 0
 
 def KNN_compare(node):
     return node.distance
 
 def KNN_distance(seg1, seg2):
     dist = 0
-    blosum_max = 0
-    blosum_min = 0
-    for i in range(21):
-        for j in range(21):
-            blosum_max = max(BLOSUM62[i][j], blosum_max)
-            blosum_min = min(BLOSUM62[i][j], blosum_min)
+    blosum_max = 11
+    blosum_min = -4
+    # for i in range(21):
+    #     for j in range(21):
+    #         blosum_max = max(BLOSUM62[i][j], blosum_max)
+    #         blosum_min = min(BLOSUM62[i][j], blosum_min)
+    # print(blosum_max)
+    # print(blosum_min)
     if len(seg1) == len(seg2):
         sim = []
         for i in range(len(seg1)):
@@ -206,6 +210,7 @@ def read_feature_files(fasta_file, AA_file, feature_dir, HH_dir, hse_dir, window
         for ii in range((window_length-1) // 2):
             format_seq = '*' + format_seq + '*'
         for ii in range(len(seq)):
+            half_win_len = (window_length - 1)//2
             res_seq.append(Residue(name, seq[ii], ii+1, format_seq[ii:ii+window_length]))
             if label_file:
                 res_seq[-1].label = int(label[ii])
@@ -824,32 +829,50 @@ def compute_feature(res_seq, window_length, sample_file):
                 sum_score -= math.log(tl, 2) * tl
             feature_seq[i].PSSM_entropy.append(sum_score)
     # KNN
+    print(res_seq[3].segment)
     KNN_progress = ProgressBar(res_seq_len, description="KNN Progress:")
     for i in range(res_seq_len):
         KNN_progress.current += 1
-        KNN_progress()
+        # KNN_progress()
         KNN_list = []
         with open(sample_file) as sr:
-            line = sr.readline().rstrip()
+            line = sr.readline()
+            line = line.rstrip()
+            count = 0
             while line:
                 items = [s for s in line.split('\t') if not s == '']
                 node = KNN_node()
-                node.label = float(items[0])
+                node.label = int(items[0])
+                node.index = count
                 # print(node.label)
                 node.segment = items[3][20-half_win_len : 20 + half_win_len+1]
                 # print(len(node.segment), len(res_seq[i].segment))
                 node.distance = KNN_distance(res_seq[i].segment, node.segment)
                 KNN_list.append(node)
-                line = sr.readline().rstrip()
-        KNN_list.sort(key=KNN_compare) 
+                line = sr.readline()
+                line = line.rstrip()
+                count += 1
+        KNN_list.sort(key=KNN_compare, reverse=False) 
         # print(KNN_list[0].distance)
-        # for node in KNN_list:
-        #     print(node.distance)
+
         for j in range(1,6):
+            # print(KNN_list[j].distance)
+            if i == 3:
+                print(KNN_list[j].segment)
             K = len(KNN_list) // int(2**j)
             # print(len([p for p in KNN_list[0:K] if p.label==1]), K)
             perc = len([p for p in KNN_list[0:K] if p.label==1]) / float(K)
             feature_seq[i].KNN.append(perc)
+        # if i == 3:
+        #     for j in range(1,6):
+        #     print(res_seq[i].residue_name)
+        #     print(KNN_list[0].label)
+        #     print(KNN_list[0].distance)
+        #     print(KNN_list[-1].distance)
+        #     print(len([p for p in KNN_list[0:K] if p.label==1]))
+        #     print(K)
+        #     print(len([p for p in KNN_list[0:K] if p.label==1]) / float(K))
+            # exit(1)
     KNN_progress.done()
     #HHfrewuency, HHentropy
 
@@ -908,9 +931,9 @@ def write_feature(feature, p):
     return output
 
 
-def write_features(res_seq, feature_seq, output_index, file_name):
+def write_features(res_seq, feature_seq, output_index, file_name, add_stru):
     out_file = open(file_name, 'w')
-    write_progress = ProgressBar(len(output_index), description="Writing Progress: ")
+    # write_progress = ProgressBar(len(output_index), description="Writing Progress: ")
     feature_list = [
             "terminal_factor",
             "PWAA",
@@ -960,22 +983,11 @@ def write_features(res_seq, feature_seq, output_index, file_name):
             "beta_HSE_u",
             "KNN"
         ]
-    # ref_seq = []
-    # if len(ref_file) > 0:
-    #     with open(ref_file) as f:
-    #         lines = f.readlines()
-    #         for line in lines:
-    #             collector = []
-    #             line_seq = line.split(' ')
-    #             for seg in line_seq:
-    #                 if ':' in seg:
-    #                     collector.append(float(seg.split(':')[1]))
-    #                 else:
-    #                     collector.append(float(seg))
-    #             ref_seq.append(collector)
     with open("feature_idx_map", 'w') as idx_map:
+        count = 0
         for i in output_index:
-            write_progress()
+
+            # write_progress()
             output = ""
             if res_seq[i].label == 1:
                 output += "1 "
@@ -995,10 +1007,14 @@ def write_features(res_seq, feature_seq, output_index, file_name):
                     # number
                         output += str(p) + ":" + format_num(feat) + " "
                         p += 1
+            if add_stru:
+                output += get_stru_feature(res_seq,count,p)
+            
             out_file.write(output + '\n')
-        write_progress.done()
+            count += 1
+        # write_progress.done()
         out_file.close()
-def run_seq_extract():
+def get_stru_feature(res_seq,index, feature_id):
     fasta_file = sys.argv[1]
     aa_file = sys.argv[2]
     feature_dir = sys.argv[3]
@@ -1006,13 +1022,39 @@ def run_seq_extract():
     window = int(sys.argv[5])
     residue_type = sys.argv[6]
     out_file = sys.argv[7]
+    add_stru = False if len(sys.argv) == 8 else True
+    sitelist = [];
+    for ii in range(0,len(res_seq)):
+        # print(residue_type)
+        # print(res_seq[ii].residue_name)
+        if res_seq[ii].residue_name == residue_type:
+            sitelist.append(ii+1);
+    site = [sitelist[index]]
+    feature_dir += '/'
+    fasta_file = fasta_file.split('/')[-1].split('.')[0]
+    feature_dir = '../met_predictor/Met-Predictor_12302019/example/example_features/P0CX53_features/'
+    outfilelist = get_stru_files(fasta_file,residue_type,feature_dir,feature_dir,feature_dir,feature_dir,feature_dir,feature_dir,feature_dir,feature_dir,feature_dir,site,window,feature_id);
+    return outfilelist[0].strip()
+
+
+def run_extract():
+    fasta_file = sys.argv[1]
+    aa_file = sys.argv[2]
+    feature_dir = sys.argv[3]
+    sample_file = sys.argv[4]
+    window = int(sys.argv[5])
+    residue_type = sys.argv[6]
+    out_file = sys.argv[7]
+    add_stru = False if len(sys.argv) == 8 else True
+    print("add_stru", add_stru)
     res_seq = read_feature_files(fasta_file, aa_file, feature_dir, feature_dir, feature_dir, window)
     feature_seq = compute_feature(res_seq, window, sample_file)
     output_index = []
     for i in range(len(res_seq)):
         if res_seq[i].residue_name == residue_type:
             output_index.append(i)
-    write_features(res_seq, feature_seq, output_index, out_file)
+    write_features(res_seq, feature_seq, output_index, out_file, add_stru)
+
 if __name__ == "__main__":
-    run_seq_extract()
+    run_extract()
     # run_stru_extract()

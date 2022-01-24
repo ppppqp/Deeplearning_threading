@@ -5,7 +5,7 @@ import commands
 import getopt
 import shutil
 import random
-
+#python Run_Metpredictor.py -i ../test_fasta -o out -t K
 ################################################### set home directory ############################################
 os.environ['Met_predictor_HOME']='/nfs/amino-home/panqp/protein_stru/repo/met_predictor/Met-Predictor_12302019';
 HOME=os.environ.get('Met_predictor_HOME');
@@ -127,7 +127,7 @@ for ii in range(0,len(windows)):
 ####################################### clean features directory ####################################################
 #if keepfea==1:
 #    os.system("cp -r "+FeatureDir+"/* "+feadir);
-os.system('rm -rf '+FeatureDir);
+# os.system('rm -rf '+FeatureDir);
 
 
 ######################################### select features #################################################
